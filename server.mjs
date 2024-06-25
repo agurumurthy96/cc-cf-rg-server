@@ -19,7 +19,7 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.decode(token, { complete: true });
-    console.log(decoded);
+    console.log(decoded.payload.tnt.split('_')[0]);
     const options = {
       method: 'GET',
       headers: {
