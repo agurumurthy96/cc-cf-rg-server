@@ -20,8 +20,7 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.decode(token, { complete: true });
-    const realmId = decoded.tnt.split('_')[0];
-    console.log("value of realmID:"+realmId);
+   
     const options = {
       method: 'GET',
       headers: {
