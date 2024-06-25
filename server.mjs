@@ -21,7 +21,6 @@ function verifyToken(req, res, next) {
     const decoded = jwt.decode(token, { complete: true });
     const realmId = decoded.tnt.split('_')[0];
     console.log(realmId);
-    req.realmId = realmId;
     const options = {
       method: 'GET',
       headers: {
@@ -52,7 +51,7 @@ function verifyToken(req, res, next) {
 
 // Route that requires JWT verification
 app.get('/fetchZones', verifyToken, (req, res) => {
-  fetchZones(req.realmId)
+  fetchZones(req, res)
     .then(result => {
       res.json(result);
     })
@@ -61,7 +60,7 @@ app.get('/fetchZones', verifyToken, (req, res) => {
     });
 });
 
-async function fetchZones(realmId) {
+async function fetchZones(req, res) {
   const url = "https://api.cloudflare.com/client/v4/zones?account.name=aadf";
   const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
   let result;
