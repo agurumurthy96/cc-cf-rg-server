@@ -20,7 +20,7 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.decode(token, { complete: true });
-
+    console.log("Value of token"+token)
     //const url = `https://zzem-079.dx.commercecloud.salesforce.com/s/-/dw/bm/v1/site_aliases?display_locale=default`;
     const options = {
       method: 'GET',
