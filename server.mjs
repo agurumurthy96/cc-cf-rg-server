@@ -10,7 +10,6 @@ const port = process.env.PORT || 3000;
 function verifyToken(req, res, next) {
   const authHeader = req.header('Authorization');
   const url = req.header('Instance')+"/s/-/dw/bm/v1/site_aliases?display_locale=default";
-  const refe = "https://"+req.header('Host')+"/s/-/dw/bm/v1/site_aliases?display_locale=default";
 
   if (!authHeader) {
   return res.status(403).send('A token is required for authentication');
@@ -20,6 +19,9 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.decode(token, { complete: true });
+    const realmId = decoded.tnt.split('_')[0];
+    console.log(realmId);
+    req.realmId = realmId;
     const options = {
       method: 'GET',
       headers: {
@@ -50,7 +52,7 @@ function verifyToken(req, res, next) {
 
 // Route that requires JWT verification
 app.get('/fetchZones', verifyToken, (req, res) => {
-  fetchZones(req, res)
+  fetchZones(req.realmId)
     .then(result => {
       res.json(result);
     })
@@ -59,7 +61,7 @@ app.get('/fetchZones', verifyToken, (req, res) => {
     });
 });
 
-async function fetchZones(req, res) {
+async function fetchZones(realmId) {
   const url = "https://api.cloudflare.com/client/v4/zones?account.name=aadf";
   const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
   let result;
