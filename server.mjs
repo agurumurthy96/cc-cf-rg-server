@@ -20,10 +20,6 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.decode(token, { complete: true });
-    console.log("Value of token "+token);
-    console.log(url);
-    console.log(refe);
-    //const url = `https://zzem-079.dx.commercecloud.salesforce.com/s/-/dw/bm/v1/site_aliases?display_locale=default`;
     const options = {
       method: 'GET',
       headers: {
@@ -56,8 +52,11 @@ function verifyToken(req, res, next) {
 app.get('/fetchZones', verifyToken, (req, res) => {
   fetchZones(req, res)
     .then(result => {
-      res.send(`result!` + result);
+      res.json(result);
     })
+    .catch(error => {
+      res.status(500).send('Error fetching zones: ' + error.message);
+    });
 });
 
 async function fetchZones(req, res) {
@@ -84,7 +83,7 @@ async function fetchZones(req, res) {
         id: item.id,
         name: item.name
       }));
-      return JSON.stringify(result, null, 2);
+      return result;
     })
     .catch(e => {
       console.error('Error fetching data:', e.message);
