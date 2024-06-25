@@ -58,7 +58,7 @@ app.get('/fetchZones', verifyToken, (req, res) => {
     })
 });
 
-function fetchZones(req, res) {
+async function fetchZones(req, res) {
   const url = "https://api.cloudflare.com/client/v4/zones?account.name=aadf";
   const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
   let result;
