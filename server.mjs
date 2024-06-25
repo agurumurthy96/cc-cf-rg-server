@@ -16,11 +16,12 @@ function verifyToken(req, res, next) {
   }
 
   const token = authHeader.split(' ')[1]; // Extract the token part
+  console.log("Value of token: ", token);
 
   try {
     const decoded = jwt.decode(token, { complete: true });
     const realmId = decoded.tnt.split('_')[0];
-    console.log(realmId);
+    console.log("value of realmID:"+realmId);
     const options = {
       method: 'GET',
       headers: {
