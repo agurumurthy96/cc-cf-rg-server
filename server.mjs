@@ -60,17 +60,11 @@ app.get('/fetchZones', verifyToken, (req, res) => {
     });
 });
 
-//Route to fetch traffic information
-app.post('/analytics', verifyToken, (req, res) => {
-
-
-})
 
 async function fetchZones(realmId) {
   const url = "https://api.cloudflare.com/client/v4/zones?account.name=aadf";
   const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
   let result;
-  console.log(realmId);
   return fetch(url, {
     method: 'GET',
     headers: {
@@ -98,7 +92,103 @@ async function fetchZones(realmId) {
       return result;
     });
 }
+//Route to fetch traffic information
+app.post('/analytics', verifyToken, (req, res) => {
+
+  getAnalytics(req)
+  .then(result => {
+    res.json(result);
+  })
+  .catch(error => {
+    res.status(500).send('Error getting analytics: ' + error.message);
+  });
+});
+
+async function getAnalytics(req){
+const url = "https://api.cloudflare.com/client/v4/graphql";
+const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
+let zoneName = req.body.payload.zoneName;
+let fromDateTime = req.body.payload.fromDateTime;
+let toDateTime = req.body.payload.toDateTime;
+let limit = req.body.payload.limit;
+
+let graphqlQuery = {
+  query: `
+  {
+      viewer {
+          zones(filter: {zoneTag: "${zoneName}"}) {
+              topReferers: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                  count
+                  dimensions {
+                      metric: clientRefererHost
+                  }
+              }
+              topPaths: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                  count
+                  dimensions {
+                      metric: clientRequestPath
+                  }
+              }
+              topASNs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                  count
+                  dimensions {
+                      metric: clientAsn
+                      description: clientASNDescription
+                  }
+              }
+              topUserAgents: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                  count
+                  dimensions {
+                      metric: userAgent
+                  }
+              }
+              countries: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                  count
+                  dimensions {
+                      metric: clientCountryName
+                  }
+              }
+              topClientIPs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                  count
+                  dimensions {
+                      metric: clientIP
+                  }
+              }
+          }
+      }
+  }`
+};
+
+try {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` // Replace with your actual token
+    },
+    body: JSON.stringify(graphqlQuery)
+  });
+
+  let message;
+
+  if (response.ok) { // Check if the response status is in the range 200-299
+    message = await response.json();
+  } else {
+    // Error handling
+    message = 'An error occurred with status code ' + response.status;
+  }
+
+  return message;
+
+} catch (e) {
+  console.error('Error fetching data:', e.message);
+  return 'Error fetching data: ' + e.message;
+}
+
+}
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);
 });
+
+
