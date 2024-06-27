@@ -111,7 +111,7 @@ let zoneName = req.body.payload.zoneName;
 let fromDateTime = req.body.payload.fromDateTime;
 let toDateTime = req.body.payload.toDateTime;
 let limit = req.body.payload.limit;
-
+console.log("Making the graphql query");
 let graphqlQuery = {
   query: `
   {
@@ -159,6 +159,7 @@ let graphqlQuery = {
   }`
 };
 
+console.log("Here's the graphql query"+graphqlQuery);
 try {
   const response = await fetch(url, {
     method: 'POST',
