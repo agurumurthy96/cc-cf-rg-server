@@ -60,11 +60,17 @@ app.get('/fetchZones', verifyToken, (req, res) => {
     });
 });
 
+//Route to fetch traffic information
+app.post('/analytics', verifyToken, (req, res) => {
+
+
+})
+
 async function fetchZones(realmId) {
   const url = "https://api.cloudflare.com/client/v4/zones?account.name=aadf";
   const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
   let result;
-
+  console.log(realmId);
   return fetch(url, {
     method: 'GET',
     headers: {
