@@ -39,6 +39,7 @@ function verifyToken(req, res, next) {
         }
       })
       .then(json => {
+        console.log(json)
         next();
       })
       .catch(err => {
@@ -95,6 +96,9 @@ async function fetchZones(realmId) {
 }
 //Route to fetch traffic information
 app.post('/analytics', verifyToken, (req, res) => {
+  console.log("Inside analytics path=====>");
+  console.log(req);
+
 getAnalytics(req)
   .then(result => {
     res.json(result);
@@ -105,6 +109,8 @@ getAnalytics(req)
 });
 
 async function getAnalytics(req){
+
+console.log("inside getAnaltics function")  
 const url = "https://api.cloudflare.com/client/v4/graphql";
 const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
 let zoneName = req.body.payload.zoneName;
@@ -160,31 +166,29 @@ let graphqlQuery = {
 };
 
 console.log("Here's the graphql query"+graphqlQuery);
-try {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}` // Replace with your actual token
-    },
-    body: JSON.stringify(graphqlQuery)
+return fetch(url, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify(payload)
+})
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error(`An error occurred with status code ${response.status}`);
+    }
+  })
+  .then(data => {
+    // Process the data as needed
+    return data;
+  })
+  .catch(e => {
+    console.error('Error fetching data:', e.message);
+    return `Error fetching data: ${e.message}`;
   });
-
-  let message;
-
-  if (response.ok) { // Check if the response status is in the range 200-299
-    message = await response.json();
-  } else {
-    // Error handling
-    message = 'An error occurred with status code ' + response.status;
-  }
-
-  return message;
-
-} catch (e) {
-  console.error('Error fetching data:', e.message);
-  return 'Error fetching data: ' + e.message;
-}
 
 }
 
