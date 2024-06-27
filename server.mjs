@@ -21,6 +21,7 @@ function verifyToken(req, res, next) {
     const decoded = jwt.decode(token, { complete: true });
     const realmID = decoded.payload.tnt.split('_')[0];
     req.realmID = realmID;
+    console.log("payload", req);
     const options = {
       method: 'GET',
       headers: {
@@ -94,8 +95,7 @@ async function fetchZones(realmId) {
 }
 //Route to fetch traffic information
 app.post('/analytics', verifyToken, (req, res) => {
-
-  getAnalytics(req)
+getAnalytics(req)
   .then(result => {
     res.json(result);
   })
