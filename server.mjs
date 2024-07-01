@@ -97,8 +97,7 @@ async function fetchZones(realmId) {
 }
 //Route to fetch traffic information
 
-app.post('/analytics', async (req, res) => {
-  console.log('Received payload:', JSON.stringify(req.body));
+app.post('/analytics', verifyToken, async (req, res) => {
   try {
     const result = await getAnalytics(req);
     res.json(result);
@@ -112,15 +111,12 @@ async function getAnalytics(req) {
   const url = "https://api.cloudflare.com/client/v4/graphql";
   const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0"; // Use your actual auth token here
 
-  console.log('Request body:', req.body);
-
   if (!req.body || !req.body.payload) {
     console.log('Invalid payload structure');
     throw new Error('Invalid payload structure');
   }
 
   const { zoneName, fromDateTime, toDateTime, limit } = req.body.payload;
-  console.log("Making the graphql query");
 
   const graphqlQuery = JSON.stringify({
     query: `
@@ -169,8 +165,6 @@ async function getAnalytics(req) {
     }`
   });
   
-
-  console.log("GraphQL query:", graphqlQuery);
 
   try {
     const response = await fetch(url, {
