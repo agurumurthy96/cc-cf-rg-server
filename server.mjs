@@ -95,7 +95,7 @@ async function fetchZones(realmId) {
     });
 }
 //Route to fetch traffic information
-app.post('/analytics', verifyToken, (req, res) => {
+app.post('/analytics', (req, res) => {
   console.log("Inside analytics path=====>");
   console.log(req);
 
