@@ -65,7 +65,7 @@ app.get('/fetchZones', verifyToken, (req, res) => {
 
 async function fetchZones(realmId) {
   const url = "https://api.cloudflare.com/client/v4/zones?account.name=aadf";
-  const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
+  const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0";
   let result;
   return fetch(url, {
     method: 'GET',
@@ -112,7 +112,7 @@ async function getAnalytics(req){
 
 console.log("inside getAnaltics function")  
 const url = "https://api.cloudflare.com/client/v4/graphql";
-const token = "CSzV9tvmsj7K8q5zpsTzhlx5P-Ttm65V5uOaVomP";
+const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0";
 let zoneName = req.body.payload.zoneName;
 let fromDateTime = req.body.payload.fromDateTime;
 let toDateTime = req.body.payload.toDateTime;
