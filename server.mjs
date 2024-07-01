@@ -38,7 +38,6 @@ function verifyToken(req, res, next) {
         }
       })
       .then(json => {
-        console.log(json)
         next();
       })
       .catch(err => {
