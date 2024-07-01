@@ -2,9 +2,12 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
+import bodyParser from 'body-parser';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
 
 // Middleware to verify JWT
 function verifyToken(req, res, next) {
@@ -103,92 +106,83 @@ getAnalytics(req)
   });
 });
 
-async function getAnalytics(req){
+async function getAnalytics(req) {
+  const url = "https://api.cloudflare.com/client/v4/graphql";
+  const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0"; // Use your actual auth token here
 
-const url = "https://api.cloudflare.com/client/v4/graphql";
-const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0";
-console.log(JSON.stringify(req));
-let zoneName = req.body.payload.zoneName;
-let fromDateTime = req.body.payload.fromDateTime;
-let toDateTime = req.body.payload.toDateTime;
-let limit = req.body.payload.limit;
-console.log("Making the graphql query");
-let graphqlQuery = JSON.stringify({
-  query: `
-  {
-      viewer {
+  console.log(JSON.stringify(req));
+  const { zoneName, fromDateTime, toDateTime, limit } = req.body.payload;
+  console.log("Making the graphql query");
+
+  const graphqlQuery = JSON.stringify({
+    query: `
+      {
+        viewer {
           zones(filter: {zoneTag: "${zoneName}"}) {
-              topReferers: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-                  count
-                  dimensions {
-                      metric: clientRefererHost
-                  }
+            topReferers: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+              count
+              dimensions {
+                metric: clientRefererHost
               }
-              topPaths: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-                  count
-                  dimensions {
-                      metric: clientRequestPath
-                  }
+            }
+            topPaths: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+              count
+              dimensions {
+                metric: clientRequestPath
               }
-              topASNs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-                  count
-                  dimensions {
-                      metric: clientAsn
-                      description: clientASNDescription
-                  }
+            }
+            topASNs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+              count
+              dimensions {
+                metric: clientAsn
+                description: clientASNDescription
               }
-              topUserAgents: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-                  count
-                  dimensions {
-                      metric: userAgent
-                  }
+            }
+            topUserAgents: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+              count
+              dimensions {
+                metric: userAgent
               }
-              countries: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-                  count
-                  dimensions {
-                      metric: clientCountryName
-                  }
+            }
+            countries: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+              count
+              dimensions {
+                metric: clientCountryName
               }
-              topClientIPs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-                  count
-                  dimensions {
-                      metric: clientIP
-                  }
+            }
+            topClientIPs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+              count
+              dimensions {
+                metric: clientIP
               }
+            }
           }
-      }
-  }`
-});
+        }
+      }`
+  });
 
-console.log("Here's the graphql query");
-return fetch(url, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: graphqlQuery
-})
-  .then(response => {
+  console.log("Here's the graphql query");
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: graphqlQuery
+    });
+
     if (response.ok) {
-      return response.json();
+      return await response.json();
     } else {
       throw new Error(`An error occurred with status code ${response.status}`);
     }
-  })
-  .then(data => {
-    // Process the data as needed
-    return data;
-  })
-  .catch(e => {
+  } catch (e) {
     console.error('Error fetching data:', e.message);
-    return `Error fetching data: ${e.message}`;
-  });
-
+    throw new Error(`Error fetching data: ${e.message}`);
+  }
 }
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);
 });
-
-
