@@ -65,8 +65,8 @@ app.get('/fetchZones', verifyToken, (req, res) => {
 
 
 async function fetchZones(realmId) {
-  const url = "https://api.cloudflare.com/client/v4/zones?account.name=aadf";
-  const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0";
+  const url = process.env.ZONES;
+  const token = process.env.TOKEN;
   let result;
   return fetch(url, {
     method: 'GET',
@@ -108,8 +108,8 @@ app.post('/analytics', verifyToken, async (req, res) => {
 });
 
 async function getAnalytics(req) {
-  const url = "https://api.cloudflare.com/client/v4/graphql";
-  const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0"; // Use your actual auth token here
+  const url = process.env.GRAPHQL;
+  const token = process.env.TOKEN;
 
   if (!req.body || !req.body.payload) {
     console.log('Invalid payload structure');
