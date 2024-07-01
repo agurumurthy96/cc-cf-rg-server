@@ -96,72 +96,82 @@ async function fetchZones(realmId) {
     });
 }
 //Route to fetch traffic information
-app.post('/analytics', (req, res) => {
-getAnalytics(req)
-  .then(result => {
+
+app.post('/analytics', async (req, res) => {
+  console.log('Received payload:', JSON.stringify(req.body));
+  try {
+    const result = await getAnalytics(req);
     res.json(result);
-  })
-  .catch(error => {
+  } catch (error) {
+    console.log('Error in /analytics:', error.message);
     res.status(500).send('Error getting analytics: ' + error.message);
-  });
+  }
 });
 
 async function getAnalytics(req) {
   const url = "https://api.cloudflare.com/client/v4/graphql";
   const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0"; // Use your actual auth token here
 
-  console.log(JSON.stringify(req));
+  console.log('Request body:', req.body);
+
+  if (!req.body || !req.body.payload) {
+    console.log('Invalid payload structure');
+    throw new Error('Invalid payload structure');
+  }
+
   const { zoneName, fromDateTime, toDateTime, limit } = req.body.payload;
   console.log("Making the graphql query");
 
   const graphqlQuery = JSON.stringify({
     query: `
-      {
+    {
         viewer {
-          zones(filter: {zoneTag: "${zoneName}"}) {
-            topReferers: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-              count
-              dimensions {
-                metric: clientRefererHost
-              }
+            zones(filter: {zoneTag: "${zoneName}"}) {
+                topReferers: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                    count
+                    dimensions {
+                        metric: clientRefererHost
+                    }
+                }
+                topPaths: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                    count
+                    dimensions {
+                        metric: clientRequestPath
+                    }
+                }
+                topASNs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                    count
+                    dimensions {
+                        metric: clientAsn
+                        description: clientASNDescription
+                    }
+                }
+                topUserAgents: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                    count
+                    dimensions {
+                        metric: userAgent
+                    }
+                }
+                countries: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                    count
+                    dimensions {
+                        metric: clientCountryName
+                    }
+                }
+                topClientIPs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
+                    count
+                    dimensions {
+                        metric: clientIP
+                    }
+                }
             }
-            topPaths: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-              count
-              dimensions {
-                metric: clientRequestPath
-              }
-            }
-            topASNs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-              count
-              dimensions {
-                metric: clientAsn
-                description: clientASNDescription
-              }
-            }
-            topUserAgents: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-              count
-              dimensions {
-                metric: userAgent
-              }
-            }
-            countries: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-              count
-              dimensions {
-                metric: clientCountryName
-              }
-            }
-            topClientIPs: httpRequestsAdaptiveGroups(filter: {datetime_geq: "${fromDateTime}", datetime_leq: "${toDateTime}"}, limit: ${limit}, orderBy:[count_DESC]) {
-              count
-              dimensions {
-                metric: clientIP
-              }
-            }
-          }
         }
-      }`
+    }`
   });
+  
 
-  console.log("Here's the graphql query");
+  console.log("GraphQL query:", graphqlQuery);
+
   try {
     const response = await fetch(url, {
       method: 'POST',
