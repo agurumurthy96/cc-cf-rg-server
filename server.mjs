@@ -105,18 +105,15 @@ getAnalytics(req)
 
 async function getAnalytics(req){
 
-console.log("inside getAnaltics function")  
 const url = "https://api.cloudflare.com/client/v4/graphql";
 const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0";
-
-console.log("payload"+req.body.payload);
-console.log("body"+req.body);
+console.log(JSON.stringify(req));
 let zoneName = req.body.payload.zoneName;
 let fromDateTime = req.body.payload.fromDateTime;
 let toDateTime = req.body.payload.toDateTime;
 let limit = req.body.payload.limit;
 console.log("Making the graphql query");
-let graphqlQuery = {
+let graphqlQuery = JSON.stringify({
   query: `
   {
       viewer {
@@ -161,16 +158,16 @@ let graphqlQuery = {
           }
       }
   }`
-};
+});
 
-console.log("Here's the graphql query"+graphqlQuery);
+console.log("Here's the graphql query");
 return fetch(url, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
   },
-  body: JSON.stringify(graphqlQuery)
+  body: graphqlQuery
 })
   .then(response => {
     if (response.ok) {
