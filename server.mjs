@@ -171,7 +171,7 @@ return fetch(url, {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
   },
-  body: JSON.stringify(payload)
+  body: JSON.stringify(graphqlQuery)
 })
   .then(response => {
     if (response.ok) {
