@@ -113,6 +113,9 @@ async function getAnalytics(req){
 console.log("inside getAnaltics function")  
 const url = "https://api.cloudflare.com/client/v4/graphql";
 const token = "4nuY5v1XOzSLTZaE3S8nCXCxeDVB2FiDDInfUbp0";
+
+console.log("payload"+req.body.payload);
+console.log("body"+req.body);
 let zoneName = req.body.payload.zoneName;
 let fromDateTime = req.body.payload.fromDateTime;
 let toDateTime = req.body.payload.toDateTime;
